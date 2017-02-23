@@ -7,6 +7,7 @@
  */
 
 // Node.js core.
+const cp = require('child_process');
 const path = require('path');
 
 // Public dependencies
@@ -41,8 +42,11 @@ module.exports = function () {
         silent: false,
         watch: true,
         watchDirectory: process.cwd(),
+        watchIgnoreDotFiles: true, // Whether to ignore file starting with a '.'
+        watchIgnorePatterns: ['node_modules/**/*', 'public/**/*'], // Ignore patterns to use when watching files.
         killTree: true, // Kills the entire child process tree on `exit`,
-        spinSleepTime: 0
+        spinSleepTime: 0,
+        command: 'node --harmony-async-await'
       });
 
       const child = new (forever.Monitor)('server.js', options);
@@ -55,6 +59,15 @@ module.exports = function () {
 
       // Start child process
       return child.start();
+    }
+
+    // Run app as a child_process
+    // when harmony flag is not detected.
+    if (!~process.execArgv.indexOf('--harmony')) {
+      const opts = Object.create(process.env);
+      opts.execArgv = ['--harmony-async-await'];
+
+      return cp.fork(path.resolve(process.cwd(), 'server.js'), opts);
     }
 
     // Use the app's local `strapi` in `node_modules` if it's existant and valid.

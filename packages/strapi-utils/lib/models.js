@@ -55,7 +55,6 @@ module.exports = {
       const ORM = this.getORM(collectionIdentity);
 
       try {
-        const GraphQLFunctions = require(path.resolve(strapi.config.appPath, 'node_modules', 'strapi-' + ORM, 'lib', 'utils'));
         const ORMFunctions = require(path.resolve(strapi.config.appPath, 'node_modules', 'strapi-' + ORM, 'lib', 'utils'));
 
         if (!_.isUndefined(ORMFunctions)) {
@@ -73,8 +72,7 @@ module.exports = {
    * Find relation nature with verbose
    */
 
-  getNature: function (association, key, models) {
-    const strapi = _.isUndefined(global['strapi']) && !_.isUndefined(models) ? _.set({}, 'models', models) : global['strapi'];
+  getNature: (association, key, models) => {
     const types = {
       current: '',
       other: ''
@@ -208,7 +206,7 @@ module.exports = {
    * Return ORM used for this collection.
    */
 
-  getORM: function (collectionIdentity) {
+  getORM: collectionIdentity => {
     return _.get(strapi.models, collectionIdentity.toLowerCase() + '.orm');
   },
 
@@ -252,7 +250,7 @@ module.exports = {
     }
   },
 
-  getVia: function (attribute, association) {
+  getVia: (attribute, association) => {
     return _.findKey(strapi.models[association.model || association.collection].attributes, {via: attribute});
   }
 };

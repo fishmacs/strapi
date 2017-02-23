@@ -97,6 +97,16 @@ module.exports = strapi => {
           }, cb);
         },
 
+        // // Load admin from `./admin/**/*.js|json`.
+        // 'admin/**': cb => {
+        //   dictionary.optional({
+        //     dirname: path.resolve(strapi.config.appPath, strapi.config.paths.admin),
+        //     excludeDirs: /(public)$/,
+        //     filter: /(.+)\.(js|json)$/,
+        //     depth: 3
+        //   }, cb);
+        // },
+
         // Load plugins from `./plugins/**/*.js|json`.
         'plugins/**': cb => {
           dictionary.optional({
@@ -113,11 +123,8 @@ module.exports = strapi => {
 
         // Just in case there is an error.
         if (err) {
-          return cb(err);
+          // return cb(err);
         }
-
-        // Template literal string
-        config = templateConfigurations(config);
 
         // Merge every user config together.
         const mergedConfig = _.merge(
@@ -159,6 +166,9 @@ module.exports = strapi => {
         // Make the application name in config match the server one.
         strapi.app.name = strapi.config.name;
 
+        // Template literal string
+        strapi.config = templateConfigurations(strapi.config);
+
         // Initialize empty API objects.
         strapi.controllers = {};
         strapi.models = {};
@@ -175,9 +185,9 @@ module.exports = strapi => {
   function templateConfigurations(object) {
     // Allow values which looks like such as
     // an ES6 literal string without parenthesis inside (aka function call).
-    var regex = /^\$\{[^()]*\}$/g;
+    const regex = /\$\{[^()]*\}/g;
 
-    return _.mapValues(object, (value, key) => {
+    return _.mapValues(object, (value) => {
       if (_.isPlainObject(value)) {
         return templateConfigurations(value);
       } else if (_.isString(value) && regex.test(value)) {

@@ -6,10 +6,6 @@
  * Module dependencies
  */
 
-// Node.js core.
-const fs = require('fs');
-const path = require('path');
-
 // Public node modules.
 const _ = require('lodash');
 
@@ -18,11 +14,9 @@ const packageJSON = require('../package.json');
 
 // Strapi utilities.
 const program = require('strapi-utils').commander;
-const logger = require('strapi-utils').logger;
 
 // Needed.
-const HOME = process.env[process.platform === 'win32' ? 'USERPROFILE' : 'HOME'];
-const NOOP = function () {};
+const NOOP = () => {};
 let cmd;
 
 /**
@@ -40,7 +34,7 @@ program.allowUnknownOption(true);
 program.version(packageJSON.version, '-v, --version');
 
 // Make `-v` option case-insensitive.
-process.argv = _.map(process.argv, function (arg) {
+process.argv = _.map(process.argv, arg => {
   return (arg === '-V') ? '-v' : arg;
 });
 
@@ -62,10 +56,10 @@ cmd.description('start your Strapi application');
 cmd.action(require('./strapi-start'));
 
 // `$ strapi console`
-cmd = program.command('console');
-cmd.unknownOption = NOOP;
-cmd.description('open the Strapi framework console');
-cmd.action(require('./strapi-console'));
+// cmd = program.command('console');
+// cmd.unknownOption = NOOP;
+// cmd.description('open the Strapi framework console');
+// cmd.action(require('./strapi-console'));
 
 // `$ strapi generate:api`
 cmd = program.command('generate:api');
@@ -112,17 +106,6 @@ cmd = program.command('generate:generator');
 cmd.unknownOption = NOOP;
 cmd.description('generate a custom generator');
 cmd.action(require('./strapi-generate'));
-
-// Custom generators from `.strapirc`.
-try {
-  const config = JSON.parse(fs.readFileSync(path.resolve(HOME, '.strapirc')));
-  _.forEach(config.generators, function (info, name) {
-    cmd = program.command('generate:' + name);
-    cmd.unknownOption = NOOP;
-    cmd.description(info.description);
-    cmd.action(require('./strapi-generate'));
-  });
-} catch (err) {}
 
 // `$ strapi migrate:make`
 cmd = program.command('migrate:make');

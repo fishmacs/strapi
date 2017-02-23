@@ -1,61 +1,36 @@
 {
   "private": true,
-  "version": "2.0.0",
+  "version": "3.0.0-alpha.1",
   "devDependencies": {
     "assert": "~1.3.0",
+    "babel-eslint": "^6.1.2",
     "coveralls": "~2.11.9",
+    "eslint": "^3.12.2",
+    "eslint-config-airbnb": "^13.0.0",
+    "eslint-plugin-babel": "^4.0.0",
+    "eslint-plugin-import": "^2.2.0",
+    "eslint-plugin-jsx-a11y": "^2.2.3",
+    "eslint-plugin-react": "^6.8.0",
+    "eslint-plugin-redux-saga": "^0.3.0",
     "istanbul": "~0.4.2",
+    "lerna": "2.0.0-beta.30",
     "mocha": "~2.4.5",
     "mocha-lcov-reporter": "~1.2.0",
     "pre-commit": "~1.1.2",
-    "xo": "~0.13.0"
-  },
-  "xo": {
-    "space": true,
-    "envs": [
-      "mocha",
-      "node"
-    ],
-    "globals": [
-      "strapi"
-    ],
-    "ignore": [
-      "packages/strapi-generate-new/files/public/**",
-      "website/**"
-    ],
-    "rules": {
-      "array-callback-return": 0,
-      "brace-style": 0,
-      "camelcase": 0,
-      "default-case": 0,
-      "dot-notation": 0,
-      "no-case-declarations": 0,
-      "no-else-return": 0,
-      "no-eval": 0,
-      "no-implicit-coercion": 0,
-      "no-lonely-if": 0,
-      "no-negated-condition": 0,
-      "no-throw-literal": 0,
-      "no-unused-expressions": 0,
-      "no-unused-vars": 0,
-      "padded-blocks": 0,
-      "prefer-template": 0,
-      "quote-props": 0,
-      "space-infix-ops": 0,
-      "strict": 0
-    }
+    "redux-saga": "^0.14.3"
   },
   "scripts": {
-    "test": "make test"
+    "test": "make test",
+    "setup": "make setup"
   },
   "author": {
     "email": "hi@strapi.io",
-    "name": "Strapi team",
+    "name": "Strapi Solutions",
     "url": "http://strapi.io"
   },
   "maintainers": [
     {
-      "name": "Strapi team",
+      "name": "Strapi Solutions",
       "email": "hi@strapi.io",
       "url": "http://strapi.io"
     }
@@ -68,8 +43,9 @@
     "url": "https://github.com/strapi/strapi/issues"
   },
   "engines": {
-    "node": ">= 4.0.0",
+    "node": ">= 7.0.0",
     "npm": ">= 3.0.0"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {}
 }

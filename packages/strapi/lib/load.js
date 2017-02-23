@@ -10,7 +10,6 @@ const path = require('path');
 // Public node modules.
 const _ = require('lodash');
 const async = require('async');
-const herd = require('herd');
 
 // Local dependencies.
 const Configuration = require('./configuration');
@@ -54,9 +53,16 @@ module.exports = function (configOverride, cb) {
     initializeHooks: ['loadDictionary', (result, cb) => initializeHooks.apply(this, [cb])],
     // Load hooks into memory.
     loadHooks: ['initializeHooks', (result, cb) => loadHooks.apply(this, [cb])]
-  }, (err, results) => {
+  }, (err) => {
     if (err) {
-      console.log(err);
+      const hooksLoaded = _.keys(_.mapKeys(this.warmEvents, (value, key) => {
+        if (key.indexOf('hook:') !== -1) {
+          return key.split(':')[1];
+        }
+      }));
+
+      this.log.error(err);
+      this.log.debug('The hooks (' + hooksLoaded.join(', ') + ') are loaded, though.');
     }
 
     ready__.apply(this, [cb])();
@@ -117,20 +123,28 @@ module.exports = function (configOverride, cb) {
     const mapper = _.clone(this.config.hooks);
 
     // Map (warning: we could have some order issues).
-    _.assignWith(mapper, this.tree, (objValue, srcValue) => {
-      return objValue === false ? objValue : true;
+    _.assignWith(mapper, this.tree, (objValue) => {
+      if (_.isPlainObject(objValue)) {
+        return true;
+      }
+
+      return _.isBoolean(objValue) ? objValue : false;
     });
 
     // Pick hook to load.
-    this.hooks = _.pickBy(mapper, value => value !== false);
+    this.hooks = _.pickBy(mapper, value => value === true);
 
     // Require only necessary hooks.
     this.hooks = _.mapValues(this.hooks, (hook, hookIdentity) => {
+      if (_.isEmpty(_.get(this.tree, hookIdentity + '.path'))) {
+        return cb(`The hook strapi-${hookIdentity} cannot be found. Try to run \`npm install strapi-${hookIdentity}\`.`);
+      }
+
       try {
         return require(_.get(this.tree, hookIdentity + '.path'));
       } catch (err) {
         try {
-          return require(path.resolve(this.config.appPath, 'node_modules', hookIdentity));
+          return require(path.resolve(this.config.appPath, 'node_modules', _.get(this.tree, hookIdentity + '.path')));
         } catch (err) {
           cb(err);
         }
@@ -171,21 +185,7 @@ module.exports = function (configOverride, cb) {
       }
 
       // We can finally make the server listen on the configured port.
-      // Use of the `herd` node module to herd the child processes with
-      // zero downtime reloads.
-      if (_.isPlainObject(this.config.reload) && !_.isEmpty(this.config.reload) && this.config.reload.workers > 0) {
-        herd(this.config.name)
-          .close(function () {
-            process.send('message');
-          })
-          .timeout(this.config.reload.timeout)
-          .size(this.config.reload.workers)
-          .run(function () {
-            this.server.listen(this.config.port);
-          });
-      } else {
-        this.server.listen(this.config.port);
-      }
+      this.server.listen(this.config.port);
 
       cb && cb(null, this);
     };

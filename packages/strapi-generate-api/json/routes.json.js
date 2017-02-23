@@ -6,7 +6,6 @@
 
 // Node.js core.
 const fs = require('fs');
-const path = require('path');
 
 // Public node modules.
 const _ = require('lodash');
@@ -16,53 +15,75 @@ const _ = require('lodash');
  */
 
 module.exports = scope => {
-  const newRoutes = {
-    routes: {}
-  };
-
-  newRoutes.routes['GET /' + scope.humanizeId] = {
-    controller: scope.globalID,
-    action: 'find',
-    policies: []
-  };
-
-  newRoutes.routes['GET /' + scope.humanizeId + '/:id'] = {
-    controller: scope.globalID,
-    action: 'findOne',
-    policies: []
-  };
-
-  newRoutes.routes['POST /' + scope.humanizeId] = {
-    controller: scope.globalID,
-    action: 'create',
-    policies: []
-  };
-
-  newRoutes.routes['PUT /' + scope.humanizeId + '/:id'] = {
-    controller: scope.globalID,
-    action: 'update',
-    policies: []
-  };
-
-  newRoutes.routes['DELETE /' + scope.humanizeId + '/:id'] = {
-    controller: scope.globalID,
-    action: 'destroy',
-    policies: []
-  };
-
-  if (scope.template && scope.template !== 'mongoose') {
-    newRoutes.routes['POST /' + scope.humanizeId + '/:id/relationships/:relation'] = {
-      controller: scope.globalID,
-      action: 'createRelation',
-      policies: []
-    };
-
-    newRoutes.routes['DELETE /' + scope.humanizeId + '/:id/relationships/:relation'] = {
-      controller: scope.globalID,
-      action: 'destroyRelation',
-      policies: []
+  function generateRoutes() {
+    return {
+      routes: [{
+        method: 'GET',
+        path: '/' + (scope.humanizeSubId || scope.humanizeId),
+        handler: scope.globalID + '.find',
+        config: {
+          policies: []
+        }
+      }, {
+        method: 'GET',
+        path: '/' + (scope.humanizeSubId || scope.humanizeId) + '/:id',
+        handler: scope.globalID + '.findOne',
+        config: {
+          policies: []
+        }
+      }, {
+        method: 'POST',
+        path: '/' + (scope.humanizeSubId || scope.humanizeId),
+        handler: scope.globalID + '.create',
+        config: {
+          policies: []
+        }
+      }, {
+        method: 'PUT',
+        path: '/' + (scope.humanizeSubId || scope.humanizeId) + '/:id',
+        handler: scope.globalID + '.update',
+        config: {
+          policies: []
+        }
+      }, {
+        method: 'DELETE',
+        path: '/' + (scope.humanizeSubId || scope.humanizeId) + '/:id',
+        handler: scope.globalID + '.destroy',
+        config: {
+          policies: []
+        }
+      }]
     };
   }
 
-  return newRoutes;
+  // We have to delete current file
+  if (!_.isEmpty(scope.subId)) {
+    let current;
+
+    try {
+      // Copy current routes.json
+      current = require(scope.rootPath);
+
+      // Remove current routes.json
+      fs.unlinkSync(scope.rootPath);
+    } catch (e) {
+      // Fake existing routes
+      current = {
+        routes: []
+      };
+    }
+
+    try {
+      const newest = generateRoutes().routes;
+      // Merge both array of routes, and remove identical routes
+      _.set(current, 'routes', _.concat(newest, _.differenceWith(current.routes, newest, _.isEqual)));
+
+      return current;
+    } catch (e) {
+      console.error(e);
+      return;
+    }
+  }
+
+  return generateRoutes();
 };
